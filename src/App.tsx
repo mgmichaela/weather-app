@@ -1,26 +1,134 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect, ChangeEvent, FC } from 'react';
+import axios from 'axios';
+import { Container, Grid } from '@mui/material';
+import Navbar from './components/Navbar';
+import CityName from './components/CityName';
+import Line from './components/Line';
+import Temperature from './components/Temperature';
+import WeatherType from './components/WeatherType';
+import Details from './components/Details';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+interface WeatherData {
+  name: string;
+  main: {
+    temp: number;
+    humidity: number;
+    feels_like: number;
+  };
+  weather: [{
+    main: string;
+    icon: string;
+  }];
+  wind: {
+    speed: number;
+  }
 }
+
+const App: FC = () => {
+  const [city, setCity] = useState<string>('Stockholm');
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [searchCity, setSearchCity] = useState<string>('');
+
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        const apiKey = process.env.REACT_APP_API_KEY;
+        const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+        const response = await axios.get<WeatherData>(apiUrl);
+        setWeatherData(response.data);
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+      }
+    };
+
+    fetchWeatherData();
+
+    // fetch weather data every 10 minutes
+    const intervalId = setInterval(fetchWeatherData, 600000);
+    return () => clearInterval(intervalId);
+
+  }, [city]);
+
+  const handleCityChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchCity(e.target.value);
+  };
+
+  const handleSearch = () => {
+    setCity(searchCity);
+  };
+
+  return (
+    <Container sx={{
+      background: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: '16px',
+      boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+      backdropFilter: 'blur(5px)',
+      webkitBackdropFilter: 'blur(5px)',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      height: '55rem'
+    }}>
+      {weatherData && (
+        <Grid container>
+          <Grid item xs={12}>
+            <Navbar
+              setIsSearching={setIsSearching}
+              isSearching={isSearching}
+              searchCity={searchCity}
+              handleCityChange={handleCityChange}
+              handleSearch={handleSearch}
+            />
+          </Grid>
+          <Grid
+            item xs={12}
+            sx={{ display: 'flex', justifyContent: 'center' }}>
+            <CityName name={weatherData.name} />
+          </Grid>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              height: '2px',
+              marginTop: '2rem'
+            }}>
+            <Line />
+          </Grid>
+          <Grid
+            item xs={12}
+            sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Temperature temperature={weatherData.main.temp} />
+          </Grid>
+          <Grid
+            item xs={12}
+            sx={{ display: 'flex', justifyContent: 'center' }}>
+            <WeatherType weatherType={weatherData.weather[0].main} />
+          </Grid>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              height: '2px',
+              marginTop: '2rem',
+              marginBottom: '4rem'
+            }}>
+            <Line />
+          </Grid>
+          <Grid item xs={12}>
+            <Details
+              feelsLikeTemperature={weatherData.main.feels_like}
+              windSpeed={weatherData.wind.speed}
+              humidity={weatherData.main.humidity}
+            />
+          </Grid>
+        </Grid >
+      )}
+    </Container>
+  );
+};
 
 export default App;
