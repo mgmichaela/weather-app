@@ -30,6 +30,7 @@ const App: FC = () => {
   const [searchCity, setSearchCity] = useState<string>('');
 
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [isInputIncorrect, setIsInputIncorrect] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchWeatherData = async () => {
@@ -40,6 +41,11 @@ const App: FC = () => {
         setWeatherData(response.data);
       } catch (error) {
         console.error('Error fetching weather data:', error);
+        setIsInputIncorrect(true);
+
+        setTimeout(() => {
+          setIsInputIncorrect(false);
+        }, 1000);
       }
     };
 
@@ -57,6 +63,8 @@ const App: FC = () => {
 
   const handleSearch = () => {
     setCity(searchCity);
+    setIsInputIncorrect(false);
+    setSearchCity('');
   };
 
   return (
@@ -78,6 +86,7 @@ const App: FC = () => {
               searchCity={searchCity}
               handleCityChange={handleCityChange}
               handleSearch={handleSearch}
+              isInputIncorrect={isInputIncorrect}
             />
           </Grid>
           <Grid

@@ -10,7 +10,7 @@ interface SearchProps {
 }
 
 const Search: FC<SearchProps> = (props) => {
-  const { handleSearch, searchCity, handleCityChange } = props;
+  const { handleSearch, searchCity, handleCityChange} = props;
 
   return (
     <TextField
