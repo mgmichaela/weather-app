@@ -1,12 +1,13 @@
 import { useState, useEffect, ChangeEvent, FC } from 'react';
 import axios from 'axios';
-import { Container, Grid } from '@mui/material';
+import { Box, Container, Grid } from '@mui/material';
 import Navbar from './components/Navbar';
 import CityName from './components/CityName';
 import Line from './components/Line';
 import Temperature from './components/Temperature';
 import WeatherType from './components/WeatherType';
 import Details from './components/Details';
+import WelcomePage from './partials/WelcomePage';
 
 interface WeatherData {
   name: string;
@@ -25,12 +26,14 @@ interface WeatherData {
 }
 
 const App: FC = () => {
-  const [city, setCity] = useState<string>('Stockholm');
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [searchCity, setSearchCity] = useState<string>('');
-
+  // implement local storage because city is not being saved here, only once
+  const [city, setCity] = useState<string>('Stockholm' || searchCity);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [isInputIncorrect, setIsInputIncorrect] = useState<boolean>(false);
+  const [isFirstTime, setIsFirstTime] = useState(false);
 
   useEffect(() => {
     const fetchWeatherData = async () => {
@@ -65,7 +68,20 @@ const App: FC = () => {
     setCity(searchCity);
     setIsInputIncorrect(false);
     setSearchCity('');
+    setIsFirstTime(false);
   };
+
+
+  useEffect(() => {
+    const isFirstTimeVisitor = localStorage.getItem('isFirstTimeVisitor');
+
+    if (!isFirstTimeVisitor) {
+      setIsFirstTime(true);
+      localStorage.setItem('isFirstTimeVisitor', 'true');
+    }
+  }, []);
+
+  console.log('searchCity', searchCity)
 
   return (
     <Container sx={{
@@ -77,7 +93,16 @@ const App: FC = () => {
       border: '1px solid rgba(255, 255, 255, 0.3)',
       height: '55rem'
     }}>
-      {weatherData && (
+      {isFirstTime && (
+        <Box sx={{ height: '55rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <WelcomePage
+            searchCity={searchCity}
+            handleCityChange={handleCityChange}
+            handleSearch={handleSearch}
+          />
+        </Box>
+      )}
+      {!isFirstTime && weatherData && (
         <Grid container>
           <Grid item xs={12}>
             <Navbar

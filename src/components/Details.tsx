@@ -29,7 +29,7 @@ const Details: FC<DetailsProps> = (props) => {
                     {Math.round(windSpeed)}
                   </Typography>
                   <Typography sx={{ color: '#3C3C3A', fontSize: '1rem', textTransform: 'uppercase' }}>
-                    km/h
+                    m/s
                   </Typography>
                 </Box>
               </Grid>
